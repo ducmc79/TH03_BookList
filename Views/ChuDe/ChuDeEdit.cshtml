@@ -1,0 +1,18 @@
+﻿@model TH03_BookList.Models.ChuDe
+@{
+    bool isEdit = Model.Mcd > 0;
+    ViewData["Title"] = isEdit ? "Chỉnh sửa chủ đề" : "Thêm mới chủ đề";
+}
+<h2>@ViewData["Title"]</h2>
+<form asp-action="ChuDeEdit" method="post">
+    <input type="hidden" asp-for="Mcd" />
+    <div class="form-group mb-3">
+        <label asp-for="TenChuDe" class="form-label">Tên chủ đề</label>
+        <input asp-for="TenChuDe" class="form-control" />
+        <span asp-validation-for="TenChuDe" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">
+        @(isEdit ? "Cập nhật" : "Tạo mới")
+    </button>
+    <a asp-action="Chude" class="btn btn-secondary">Quay lại</a>
+</form>
