@@ -1,0 +1,84 @@
+﻿@model List<Dictionary<string, object>>
+@using System.Globalization
+@{
+    ViewData["Title"] = "Truy vấn CSDL QLBanSach";
+
+    // Cột ảnh: HinhMinhHoa (bảng SACH) hoặc Hinh_Minh_Hoa (bảng QUANG_CAO)
+    bool IsImageColumn(string col) =>
+        col.Contains("Hinh", StringComparison.OrdinalIgnoreCase);
+
+    // Dựng đường dẫn tới file trong wwwroot/images
+    string? ImageUrl(object? value)
+    {
+        var s = Convert.ToString(value, CultureInfo.InvariantCulture)?.Trim();
+        if (string.IsNullOrEmpty(s) || s == "NULL") return null;
+        // DB đã lưu kèm đuôi sau khi sửa hàng loạt; vẫn nối .jpg phòng khi có giá trị cũ
+        var file = s.Contains('.') ? s : s + ".jpg";
+        return "/images/" + Uri.EscapeDataString(file);
+    }
+}
+<h2>@ViewData["Title"]</h2>
+
+<form method="get" asp-action="QueryDemo" id="filterForm">
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label class="form-label">Lọc theo danh mục:</label>
+            <!-- Thêm onchange="this.form.submit()" để tự động submit khi chọn -->
+            <select name="Id" style="width:100%"
+                    asp-items="ViewBag.Queries"
+                    class="form-select"
+                    onchange="this.form.submit()">
+                <option value="">-- Tất cả --</option>
+            </select>
+        </div>
+    </div>
+</form>
+
+@if (Model == null || Model.Count == 0)
+{
+    <div class="alert alert-info">
+        Vui lòng chọn một câu lệnh truy vấn ở trên để xem kết quả.
+    </div>
+}
+else
+{
+    @* Lấy danh sách tên cột từ khoá của Dictionary đầu tiên *@
+    var columns = Model[0].Keys.ToList();
+
+    <p class="text-muted">@(ViewBag.QueryName) &mdash; Số bản ghi: <strong>@Model.Count</strong></p>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    @foreach (var col in columns)
+                    {
+                        <th scope="col">@col</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in Model)
+                {
+                    <tr>
+                        @foreach (var col in columns)
+                        {
+                            var url = IsImageColumn(col) ? ImageUrl(row[col]) : null;
+                            if (url != null)
+                            {
+                                <td class="text-center">
+                                    <img src="@url" alt="@row[col]" class="img-thumbnail" style="max-height:70px"
+                                         onerror="this.style.display='none';" />
+                                </td>
+                            }
+                            else
+                            {
+                                <td>@row[col]</td>
+                            }
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
